@@ -1,0 +1,238 @@
+select * from  VMS.TRANSL_1 
+
+select * from  VMS.TRANSL_1 v
+where regexp_like (V.TRANSLATION ,  'leaf|medic|stem|root|trunk|fruit|berry|bean')
+
+select * from  VMS.TRANSL_1 v
+where regexp_like (V.mph_code ,  'BMB')
+
+
+------------------
+
+
+select metaphone('chunk') from dual
+
+select *
+FROM VMS.GONK2_NWORD nw 
+            WHERE NW.ID_TYPE = 2
+              and NW.N_TYPE = 2 -- 1-words
+              
+              
+delete from               
+VMS.GONK2_NWORD nw 
+            WHERE NW.ID_TYPE = 2
+              and NW.N_TYPE = 2 -- 1-words
+              
+              
+          --    begin
+          --     fill_2word_preview;
+          --    end;
+               
+
+-------------------------
+
+2-words:
+
+select  LPAD (
+               TRIM (
+                  REGEXP_REPLACE (idx,
+                                  '<([[:digit:]]+)([rv]).([[:digit:]]*)>',
+                                  '\1')),
+               3,
+               '0')
+               lpad1,
+            REGEXP_REPLACE (idx, '<([[:digit:]]+)([rv]).([[:digit:]]*)>', '\2')
+               lpad2,
+nw.idx,  NW.N, NW.NWORD , NW.MPH_CODE , md.word, MD.TRANSLATION, 
+ VMS.EUCLID_DIST_SIMILARITY(upper(nword), word) eucl_dist, UTL_MATCH.JARO_WINKLER_SIMILARITY (upper(nword), word) JW, 
+ UTL_MATCH.EDIT_DISTANCE_similarity (upper(nword), word) ED
+from VMS.GONK2_NWORD nw
+ LEFT JOIN VMS.manchu_dict_join md ON ( NW.MPH_CODE = MD.MPH_CODE )
+where nw.id_type = 2
+   and nw.n_type = 2
+ --and md.id is not null 
+ order by lpad1, lpad2, idx
+
+
+select nw.id, NW.N, NW.NWORD , NW.MPH_CODE , md.word, MD.TRANSLATION, 
+ VMS.EUCLID_DIST_SIMILARITY(upper(nword), word) eucl_dist, UTL_MATCH.JARO_WINKLER_SIMILARITY (upper(nword), word) JW, 
+ UTL_MATCH.EDIT_DISTANCE_similarity (upper(nword), word) ED
+from VMS.GONK2_NWORD nw
+ LEFT JOIN VMS.manchu_dict_join md ON ( NW.MPH_CODE = MD.MPH_CODE )
+where nw.id_type = 2
+   and nw.n_type = 1
+ --and md.id is not null 
+
+
+-----------------------------------
+
+
+magic
+
+SELECT mph_code, count(*) 
+FROM VMS.GONK2_NWORD nw
+WHERE NW.ID_TYPE = 2
+group by mph_code
+order by 2 desc
+ 
+
+-- Magic in VMS
+select word, translation, sound_code, mph_code 
+from VMS.MANCHU_DICT_JOIN md
+where translation like '%magic%'
+
+Row#    WORD    TRANSLATION    SOUND_CODE    MPH_CODE
+
+1    FANGGA NIYALMA magician    F525    FNKKNYLM
+2    GANIONGGA GISUN a magic oath G552    GNNKKJSN
+3    RIDI magic, supernatural power    R300    RT
+4    TARANI a dharani, magic formula T650    TRN
+5    FANGGA magic, possessed of magic powers    F520    FNKK
+6    TARNI dharani, magic formula, charm; cf. tarani    T650    TRN
+
+ 
+select * from VMS.GONK2_NWORD nw
+where id_type = 2
+and n_type = 1
+--and nword like 'uf%'
+and mph_code like '%FNK%'
+--and nw.idx like '<1r.%5%'
+
+--193 rows
+
+
+
+
+
+SELECT mph_code, count(*) 
+ FROM VMS.GONK2_NWORD nw
+WHERE NW.ID_TYPE = 2
+ group by mph_code
+ order by 2 desc
+
+Row#    MPH_CODE    COUNT(*)
+
+1    OM    1262
+2    OS    996
+3    UNKK    804
+4    BNKK    784
+5    US    706
+6    I    607
+7    T    606
+8    B    603
+9    K    581
+10    L    540
+11    UM    525
+
+SELECT nword, metaphone(nword) FROM 
+(select distinct nword 
+from VMS.GONK2_NWORD nw
+where nw.mph_code in ('OM',
+'OS',
+'UNKK',
+'BNKK',
+'US'
+)
+) a
+ORDER BY 2
+
+ 
+bungg o    BNKK
+_ bungg    BNKK
+- bongg    BNKK
+bo? ungg    BNKK
+??? bungg    BNKK
+boungg    BNKK
+bunggo    BNKK
+bongg    BNKK
+bungg    BNKK
+- b?ngg    BNKK
+.......
+.......
+
+
+select * 
+from VMS.GONK2_NWORD nw
+where nw.mph_code in ('OM',
+'OS',
+'UNKK',
+'BNKK',
+'US',
+--'I',
+--'T',
+--'B',
+--'L',
+'UM'
+)
+
+
+<2v.2>       10    0    bungg    B520    BNKK
+<2v.3>       8    0    bungg    B520    BNKK
+<2v.5>       8    0    bungg    B520    BNKK
+<2v.6>       8    0    bungg    B520    BNKK
+<2v.7>       1    0    bungg    B520    BNKK
+<3r.3>       4    0    bungg    B520    BNKK
+<3r.8>       4    0    oci    O200    OS
+...
+
+
+SELECT sound_code, count(*) 
+FROM VMS.GONK2_NWORD nw
+WHERE NW.ID_TYPE = 2
+group by sound_code
+order by 2 desc 
+
+Row#    SOUND_CODE    COUNT(*)
+
+1    O200    1790
+2    O500    1740
+3    T200    1035
+4    U520    902
+5    B520    862
+6    K000    840
+7    T000    814
+8    N200    770
+9    U200    744
+10    K100    741
+11    O000    729
+
+
+select * 
+from VMS.GONK2_NWORD nw
+where nw.sound_code in ('O200',
+'O500',
+'T200',
+'U520',
+'B520',
+'K000',
+'T000',
+'N200',
+'U200'
+)
+
+
+
+
+
+CREATE OR REPLACE FUNCTION EUCLID_DIST_SIMILARITY ( x IN VARCHAR2, y IN VARCHAR2 )
+return NUMBER
+AS
+ jws number ;
+    FUNCTION euclidean_product (x IN NUMBER, y IN NUMBER)
+    RETURN NUMBER
+  IS
+  BEGIN
+    RETURN SQRT (x * x + y * y);
+  END euclidean_product; 
+begin
+ jws := UTL_MATCH.JARO_WINKLER_SIMILARITY (x, y) ;
+ RETURN euclidean_product(
+         .2*UTL_MATCH.EDIT_DISTANCE (x, y),
+         60/ CASE jws WHEN 0 THEN 0.001 ELSE jws END );
+end EUCLID_DIST_SIMILARITY;
+
+
+
+----------------------------------------------
+
+

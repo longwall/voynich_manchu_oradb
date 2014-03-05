@@ -1,0 +1,121 @@
+
+select  SUBSTR( m.text, instr( m.text, ' ' )) "2nd" , -- SUBSTR( m.text, instr( m.text, ' ', 3 )) "3rd",
+  m.*, md.*
+from  vms.gonk2_interlin_manchu m
+ LEFT JOIN vms.manchu_dict_join md ON ( soundex( SUBSTR( m.text, instr( m.text, ' ' )) ) = md.sound_code )
+where m.id_type = 2
+ and md.id is not null 
+-- order by m.id
+
+
+SELECT h.user_id,
+       s2.username,
+       s1.sql_text,
+FROM  v$active_session_history h,
+      v$sqlarea s1,
+      v$session s2
+WHERE h.sample_time > sysdate-1
+AND   h.sql_id = s1.sql_id
+AND   h.user_id = s2.user_id
+
+
+select  SUBSTR( m.text, instr( m.text, ' ' )) "2nd" , -- SUBSTR( m.text, instr( m.text, ' ', 3 )) "3rd",
+  m.*, md.*
+from  vms.gonk2_interlin_manchu m
+ LEFT JOIN vms.manchu_dict_join md ON ( soundex( SUBSTR( m.text, instr( m.text, ' ' )) ) = md.sound_code )
+where m.id_type = 2
+ and md.id is not null 
+-- order by m.id
+
+SELECT regexp_substr( idx, '<\d+', 1 ) 
+ FROM VMS.GONK2_NWORD nw
+ order by 1
+ 
+ 
+ select LPAD('1', 3, '0') from dual -- ;    would return '0000tech'
+ 
+ CREATE OR REPLACE VIEW VMS.TRANSL_1 (lpad1, lpad2, ID, ID_TYPE, N_TYPE, IDX, N, NWORD, SOUND_CODE, MPH_CODE, WORD, TRANSLATION, MD_SOUND)
+ as
+ SELECT  LPAD( trim( regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]*)>', '\1')) , 3, '0') lpad1,
+         regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]*)>', '\2')  lpad2,
+ --   LPAD( trim( regexp_replace(idx, '(\.[:digit:]*)>', '\1') ) , 3, '0') lpad3,
+   NW.ID, NW.ID_TYPE,NW.N_TYPE, NW.IDX,NW.N,NW.NWORD, NW.SOUND_CODE  ,NW.MPH_CODE,     md.word, MD.TRANSLATION, MD.SOUND_CODE
+ FROM VMS.GONK2_NWORD nw
+      LEFT JOIN VMS.MANCHU_DICT_JOIN md ON (nw.mph_code = MD.MPH_CODE)
+ where n_type = 1
+ order by lpad1,  nw.id --lpad2, id  --lpad3, n
+ 
+ select * from VMS.TRANSL_1
+ 
+ select * from VMS.MANCHU_DICT_JOIN md
+ where mph_code = 'UHNK'
+ 
+select count(*) FROM (
+ SELECT (regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]+)>',
+                            '\1'
+                      ) )page,  
+        regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]+)>',
+                            '\2'
+                      ) rv,
+      ( regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]+)>',
+                            '\3'
+                      ) ) str,
+                       nw.*
+ FROM VMS.GONK2_NWORD nw left JOIN VMS.MANCHU_DICT_JOIN MD ON ( NW.MPH_CODE = MD.MPH_CODE )
+  where n_type =1
+  AND ID_TYPE = 2
+ order by 1 , 2  , 3          
+ )
+ 
+ 
+  SELECT (regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]+)>',
+                            '\1'
+                      ) )page,  
+        regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]+)>',
+                            '\2'
+                      ) rv,
+      ( regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]*)>',
+                            '\3'
+                      ) ) str,
+                       nw.*,md.*
+ FROM VMS.GONK2_NWORD nw left JOIN VMS.MANCHU_DICT_JOIN MD ON ( NW.MPH_CODE = MD.MPH_CODE )
+  where n_type =1
+  AND ID_TYPE = 2
+ order by 1 , 2  , 3 ,8
+ 
+ 
+ SELECT count(distinct page||rv) FROM(
+ 
+ select idx,  count( distinct nword), count(n), count(word), count(n) - count(word) 
+  FROM (
+    SELECT (regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]+)>',
+                            '\1'
+                      ) )page,  
+        regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]+)>',
+                            '\2'
+                      ) rv,
+      ( regexp_replace(idx, '<([[:digit:]]+)([rv]).([[:digit:]]*)>',
+                            '\3'
+                      ) ) str,
+                       nw.*,md.*
+ FROM VMS.GONK2_NWORD nw left JOIN VMS.MANCHU_DICT_JOIN MD ON ( NW.MPH_CODE = MD.MPH_CODE )
+  where n_type =1
+  AND ID_TYPE = 2
+  )
+  GROUP BY idx
+  order by 1
+  
+ )
+ 
+
+SELECT distinct to_number(regexp_substr( idx, '\d+' ) )
+ FROM VMS.GONK2_NWORD nw
+ where  n_type =1
+  AND ID_TYPE = 2
+ order by 1
+
+SELECT * 
+ FROM VMS.GONK2_NWORD nw
+ WHERE ID_TYPE = 2
+ and N_TYPE = 1
+ ORDER BY to_number(regexp_substr( idx, '\d+' ) )
