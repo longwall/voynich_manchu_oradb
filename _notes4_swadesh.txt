@@ -1,0 +1,42 @@
+
+select * from vms.swadesh_eng sw , vms.MANCHU_DICT_JOIN d
+where D.TRANSLATION like '% ' || sw.word || ' %' 
+--regexp_like (D.TRANSLATION ,   ) 
+and sw.id >1
+
+
+select * 
+from vms.swadesh_eng sw, vms.TRANSL_2 tr  
+ where  tr.TRANSLATION like '% ' || sw.word || ' %'
+ and sw.id not in  (1, 101, 202)
+ 
+ -----------
+ 
+ 
+ 
+
+select * from vms.transl_2 rt
+where 1=1 --rt.translation like '%sex%'
+--and word like 'N%'
+and ( word like '%HOMBI%'
+or translation like '%niyohomb%' 
+  )
+
+
+
+
+select * from vms.transl_2 rt
+where 1=1 --rt.translation like '%sex%'
+--and word like 'N%'
+and ( 
+ word like '%HOMBI%'
+ or translation like '%niyohomb%' 
+ or word like '%NIOH%' 
+  )
+
+
+
+
+select * 
+ from vms.manchu_dict_join d
+ where d.word like '%HOMBI%'
