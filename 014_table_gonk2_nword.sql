@@ -64,66 +64,68 @@ CREATE  INDEX IX_NWORD ON  GONK2_NWORD ( ID_TYPE, N_TYPE, IDX, N);
 
 
 -- double word - NN_ytpe =2
-declare
- l_N       integer := 2;
- l_id_type integer := 2; -- manchu
- l_c       integer := 0;
- l_total   integer := 0;
- s1         GONK2_NWORD.NWORD % TYPE := '';
- s2         GONK2_NWORD.NWORD % TYPE := '';
- s         GONK2_NWORD.NWORD % TYPE := '';
- l_IDX_prev    vms.gonk2_interlin_manchu.IDX %TYPE;
- l_word_prev   vms.GONK2_NWORD.NWORD %TYPE := '-'; 
- is_new_line integer := 0;
+CREATE OR REPLACE procedure VMS.fill_2word_preview
+as
+ n_type INTEGER := 2;
+ l_c integer := 0;
+ l_nword VARCHAR2(100); 
+ l_nword_prev VARCHAR2(100);
 begin
- FOR i in (SELECT * 
-            FROM vms.gonk2_interlin_manchu m 
-            WHERE m.id_type = l_id_type 
-            order by m.ID
-            )
+ FOR I IN (SELECT nw.id, nw.idx, nw.N, 
+            TRIM( regexp_replace ( nw.idx, '<(.*)\.(.*)>' , '\1') ) PAGE,
+            TRIM( regexp_replace ( nw.idx, '<(.*)\.(.*)>' , '\2') ) "ROW",
+             nword,
+            LAG ( nword, 1, 0 ) OVER ( PARTITION BY regexp_replace ( nw.idx, '<(.*)\.(.*)>' , '\1') 
+                                         ORDER BY regexp_replace ( nw.idx, '<(.*)\.(.*)>' , '\2'), NW.ID NULLS LAST ) PREV,
+            LEAD ( nword, 1, 0 ) OVER ( PARTITION BY regexp_replace ( nw.idx, '<(.*)\.(.*)>' , '\1') 
+                                         ORDER BY regexp_replace ( nw.idx, '<(.*)\.(.*)>' , '\2'), NW.ID NULLS LAST ) LEAD,
+          IM.TEXT
+         FROM VMS.GONK2_NWORD nw JOIN VMS.GONK2_INTERLIN_MANCHU im ON ( nw.idx = im.IDX and IM.ID_TYPE = 2 )
+            WHERE NW.ID_TYPE = 2
+              and NW.N_TYPE = 1 -- 1-words
+          ORDER BY 1
+        )
   LOOP
-   l_c := 0;
---   dbms_output.put_line(i.idx || ' - ' || i.text);
-   LOOP
-     dbms_output.put_line(l_c);
-     IF l_c = 0  THEN
-   --   IF  l_word_prev <> '-' THEN
-       s1 := nvl(l_word_prev,'-');
-       s2 := regexp_substr(i.text, '[^ ]+', 1, 1);
-       is_new_line := 1;
-       dbms_output.put_line(s1 || '-' || i.text);
-     -- ELSE 
-    --   l_c := l_c +1;
-     -- END IF;
-     ELSE
-       l_c := l_c + 1;
-       l_word_prev := NULL;
-       l_IDX_prev := NULL;
-       is_new_line := 0;
-       s1 := regexp_substr(i.text, '[^ ]+', 1, l_c );
-       s2 := regexp_substr(i.text, '[^ ]+', 1, l_c+1);
-      END IF;
-   EXIT WHEN s2 IS NULL and s1 is NULL;
-    IF (s1 is NOT NULL) and (s2 is NOT NULL) THEN
-     s := s1 || ' ' || s2;
-      dbms_output.put_line(s);
-     INSERT INTO  GONK2_NWORD (  ID_TYPE, N_TYPE,  
-                     IDX,   N          ,    -- 1..N
-                     IS_NEW_LINE ,  -- 0 - if inside one IDX line ELSE 1  
-                     NWORD, SOUND_CODE, MPH_CODE )
-                  VALUES ( l_id_type, l_N, i.IDX, l_c, is_new_line,  s, soundex(s), metaphone(s)   );    
-     l_total := l_total + 1;
-    ELSE
-     l_word_prev := s1;
-     l_IDX_prev := i.IDX; 
-    END IF; 
-    IF l_c =0 then
-     l_c := l_c + 1;
-    END IF;    
-   END LOOP;
+   if not(i.prev = '0' OR i.LEAD = '0' ) THEN
+        l_nword := i.prev || ' ' || i.nword;
+     --  dbms_output.put_line( i.idx ||' - ' || i.PAGE || ' : ' || i."ROW" || ' : ' || l_nword );
+        INSERT INTO  VMS.GONK2_NWORD (
+                                    IDX,
+                                    IDX_NEW_LINE,
+                                    ID_TYPE,
+                                    IS_NEW_LINE ,   
+                                    MPH2_CODE,    
+                                    MPH_CODE,   
+                                    N,   
+                                    NWORD ,  
+                                    N_TYPE, 
+                                    SOUND_CODE )
+         VALUES (  
+                i.IDX,
+                NULL,
+                2,
+                0,
+                NULL,        --MPH2
+                metaphone(l_nword),
+                i.N,
+                l_nword,
+                2 ,              -- N_TYPE= 2  - 2-words , 2-gram
+                soundex( l_nword)
+               );
+      l_c := l_c + 1;
+     --  IF l_c > 100 then 
+      --  exit;
+     --  end if;
+      --l_nword_prev := i.nword;
+   end if; 
   END LOOP;
---  COMMIT;
-   dbms_output.put_line(' Totally ' || l_total || ' 2-words added');
+  dbms_output.put_line( 'Processed : ' || l_c || ' words' );
+end;
+/
+
+
+begin
+ VMS.FILL_2WORD_PREVIEW;
 end;
 
 
