@@ -128,5 +128,11 @@ begin
  VMS.FILL_2WORD_PREVIEW;
 end;
 
+-- remove duplicates
+    delete from VMS.GONK2_NWORD nw
+     WHERE  exists ( SELECT 1
+                      from   VMS.GONK2_NWORD   nw2  
+                      where  ) ;
+COMMIT;
 
 
